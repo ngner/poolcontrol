@@ -1,0 +1,14 @@
+[Unit]
+Description=Python temperature and pump control
+After=network.target
+StartLimitIntervalSec=310
+
+[Service]
+Type=simple
+Restart=on-failure
+RestartSec=60
+User=root
+ExecStart=/usr/bin/python3 /home/nick/TempSensor.py
+
+[Install]
+WantedBy=multi-user.target

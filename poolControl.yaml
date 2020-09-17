@@ -1,0 +1,28 @@
+
+      
+
+equipment:
+    poolPlugAddress: 192.168.178.210
+    
+    sensors: 
+        roof: 
+            address: 28-021313aad3aa
+        pool:
+            address: 28-021317db8eaa
+
+
+logging:
+    logfile: /home/nick/timeseries2.csv
+    
+    entries: 
+        - pool
+        - roof
+        - pumpStatus
+        - pumpRequired
+        - errors
+
+control:
+    targetPoolTemp: 28
+    #Centrigade difference to constitute effiecent heating
+    requiredGain: 10
+     
