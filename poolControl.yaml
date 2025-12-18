@@ -1,28 +1,28 @@
-
-      
+# Pool Control Configuration File
+# This file configures the pool control system
 
 equipment:
+    # IP address of the TP-Link smart plug controlling the pool pump
     poolPlugAddress: 192.168.178.210
     
+    # Temperature sensors configuration
+    # Each sensor requires a unique address from the 1-Wire bus
     sensors: 
         roof: 
             address: 28-021313aad3aa
         pool:
             address: 28-021317db8eaa
 
-
 logging:
-    logfile: /home/nick/timeseries2.csv
-    
-    entries: 
-        - pool
-        - roof
-        - pumpStatus
-        - pumpRequired
-        - errors
+    # SQLite database file path for storing timeseries readings
+    # The database will contain: Epoch, roofTemp, poolTemp, pumpNeed, pumpState
+    database: /home/nick/poolcontrol.db
 
 control:
+    # Target pool temperature in degrees Celsius
     targetPoolTemp: 28
-    #Centrigade difference to constitute effiecent heating
+    
+    # Minimum temperature difference (roof - pool) required to run the pump
+    # This ensures efficient solar heating (degrees Celsius)
     requiredGain: 10
      

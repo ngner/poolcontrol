@@ -5,6 +5,7 @@ from ruamel.yaml import YAML
 
 import time
 import sys
+import sqlite3
 
 
 
@@ -19,7 +20,7 @@ except:
     config = { 'logging': {}, 'equipment': {}, 'control': {} }
     print("No config file found at /etc/poolControl.yaml using default settings")
 
-logfile = config['logging'].get('logfile') or "/home/nick/timeseriesTest.csv"
+database = config['logging'].get('database') or "/home/nick/poolcontrol.db"
 poolPlugAddress = config['equipment'].get('poolPlugAddress') or "192.168.178.210"
 
 #set out sensor addresses
@@ -36,14 +37,43 @@ targetPoolTemp = config["control"].get("targetPoolTemp") or 27
 requiredGain = config["control"].get("requiredGain") or 10  #Centrigade difference to constitute effiecent heating
 
 
-print('Running with logfile:{0} and poolPlugAddress:{1} and targetPoolTemp:{2} and requiredGain:{3} and Sernsors {4}'.format(logfile, poolPlugAddress, targetPoolTemp, requiredGain, sensors)) 
+print('Running with database:{0} and poolPlugAddress:{1} and targetPoolTemp:{2} and requiredGain:{3} and Sensors {4}'.format(database, poolPlugAddress, targetPoolTemp, requiredGain, sensors)) 
 
 
 
-logfile 
 pumpRun = 0
 
 poolPlug = SmartPlug(poolPlugAddress)
+
+
+def initDatabase():
+    """Initialize SQLite database with readings table if it doesn't exist"""
+    conn = sqlite3.connect(database)
+    cursor = conn.cursor()
+    
+    # Check if table already exists
+    cursor.execute("""
+        SELECT name FROM sqlite_master 
+        WHERE type='table' AND name='readings'
+    """)
+    
+    if cursor.fetchone() is None:
+        # Table doesn't exist, create it
+        create_table_sql = """
+        CREATE TABLE readings (
+            Epoch INTEGER PRIMARY KEY,
+            roofTemp REAL NOT NULL,
+            poolTemp REAL NOT NULL,
+            pumpNeed INTEGER NOT NULL CHECK(pumpNeed IN (0, 1)),
+            pumpState INTEGER NOT NULL CHECK(pumpState IN (-1, 0, 1))
+        )
+        """
+        cursor.execute(create_table_sql)
+        cursor.execute("CREATE INDEX idx_epoch ON readings(Epoch)")
+        conn.commit()
+        print("Database initialized at: {0}".format(database), flush=True)
+    
+    conn.close()
 
 
 def checkTemp():
@@ -63,26 +93,37 @@ def checkTemp():
 
 
 def writeTemp():
-    timeseries = open(logfile, "a")
-    timestamp = str(int(time.time()))
-    reading = timestamp + ","
-    for name in sensors:
-        reading +=  str(sensors[name]["temp"]) + ","
-        #print(reading)
-    reading += str(pumpRun) + ","
+    """Write temperature readings to SQLite database"""
+    epoch = int(time.time())
+    
+    # Get temperatures from sensors (expecting 'roof' and 'pool' sensors)
+    roofTemp = sensors.get("roof", {}).get("temp", 0.0)
+    poolTemp = sensors.get("pool", {}).get("temp", 0.0)
+    
+    # pumpNeed is boolean: 1 if pumpRun is 1, 0 otherwise
+    pumpNeed = 1 if pumpRun == 1 else 0
+    
+    # Get pumpState: 0=off, 1=on, -1=fail
+    pumpState = -1  # Default to fail state
     try:
         currentState = poolPlug.state
-        if  currentState == "OFF":
-            reading += "0,"
-        if currentState == "ON":
-            reading += "1,"
+        if currentState == "OFF":
+            pumpState = 0
+        elif currentState == "ON":
+            pumpState = 1
     except:
-        print("poolControl failed to reach poolPlug", flush=True )
-        reading += "-1,"
-    reading += "\n"
-    #print(reading)
-    timeseries.write(reading)
-    timeseries.close()
+        print("poolControl failed to reach poolPlug", flush=True)
+        pumpState = -1
+    
+    # Insert into database
+    conn = sqlite3.connect(database)
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO readings (Epoch, roofTemp, poolTemp, pumpNeed, pumpState) VALUES (?, ?, ?, ?, ?)",
+        (epoch, roofTemp, poolTemp, pumpNeed, pumpState)
+    )
+    conn.commit()
+    conn.close()
 
     return
 
@@ -130,12 +171,8 @@ def pumpControl():
         
 
 try:
-    
-    timeseries = open(logfile, "a")
-    if (timeseries.tell() == 0):
-        print("Time Series file does not exist adding CSV headers", flush=True )
-        timeseries.write("Time" + "," + ",".join(sorted(sensors.keys())) + "\n")
-    timeseries.close()
+    # Initialize database on startup
+    initDatabase()
     
     while True:
         checkTemp()
@@ -149,6 +186,5 @@ try:
 except KeyboardInterrupt:
     pumpRun = 0
     pumpControl()
-    timeseries.close()
     print("Program Exited Cleanly", flush=True )
     
