@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from pyHS100 import SmartPlug, Discover
-from ruamel.yaml import YAML
+import yaml
 
 import time
 import sys
@@ -11,10 +11,9 @@ import sqlite3
 
 
 ## Get configuration from file if possible
-yaml = YAML(typ='safe')
 try:
     with open("/etc/poolControl.yaml", "r") as yamlfile:
-        config = yaml.load(yamlfile)
+        config = yaml.safe_load(yamlfile)
 except:
     # If this fails use an emptyish config dict.
     config = { 'logging': {}, 'equipment': {}, 'control': {} }
@@ -43,7 +42,7 @@ print('Running with database:{0} and poolPlugAddress:{1} and targetPoolTemp:{2} 
 
 pumpRun = 0
 
-poolPlug = SmartPlug(poolPlugAddress)
+poolPlug = None
 
 
 def initDatabase():
@@ -147,6 +146,13 @@ def checkSolarGain(roofTemp=0, poolTemp=0):
 
 def pumpControl():
     global pumpRun
+    if poolPlug is None:
+        try:
+            poolPlug = SmartPlug(poolPlugAddress)
+        except:
+            print("poolControl failed to reach poolPlug", flush=True)
+            return
+
     if pumpRun == 1:
         try: 
             if poolPlug.state == "OFF":
@@ -174,6 +180,14 @@ try:
     # Initialize database on startup
     initDatabase()
     
+    # Initialize SmartPlug (with error handling)
+    try:
+        poolPlug = SmartPlug(poolPlugAddress)
+        print("Connected to pool plug at: {}".format(poolPlugAddress), flush=True)
+    except Exception as e:
+        print("Warning: Could not connect to pool plug at {}: {}. Will retry during operation.".format(poolPlugAddress, e), flush=True)
+        poolPlug = None
+    
     while True:
         checkTemp()
         checkSolarGain(roofTemp=sensors["roof"]["temp"], poolTemp=sensors["pool"]["temp"])
@@ -181,7 +195,6 @@ try:
         pumpControl()
         writeTemp()
         time.sleep(60)
-
 
 except KeyboardInterrupt:
     pumpRun = 0
