@@ -48,7 +48,7 @@ def format_row(row):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Tail pool control database')
-    parser.add_argument('database', nargs='?', default='/home/nick/poolcontrol.db',
+    parser.add_argument('database', nargs='?', default='/var/lib/poolcontrol/poolcontrol.db',
                        help='Database file path')
     parser.add_argument('-f', '--follow', action='store_true',
                        help='Follow mode (like tail -f)')

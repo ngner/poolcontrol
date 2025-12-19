@@ -19,7 +19,7 @@ except:
     config = { 'logging': {}, 'equipment': {}, 'control': {} }
     print("No config file found at /etc/poolControl.yaml using default settings")
 
-database = config['logging'].get('database') or "/home/nick/poolcontrol.db"
+database = config['logging'].get('database') or "/var/lib/poolcontrol/poolcontrol.db"
 poolPlugAddress = config['equipment'].get('poolPlugAddress') or "192.168.178.210"
 
 #set out sensor addresses

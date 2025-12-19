@@ -1,5 +1,5 @@
 #!/bin/bash
-DB_FILE="${1:-/home/nick/poolcontrol.db}"
+DB_FILE="${1:-/var/lib/poolcontrol/poolcontrol.db}"
 LAST_EPOCH=0
 
 while true; do

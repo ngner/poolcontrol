@@ -26,7 +26,7 @@ Python script for viewing recent database entries, similar to `tail` for files.
 **Options:**
 - `-f, --follow`: Follow mode - continuously display new entries as they're added
 - `-n, --lines N`: Number of recent entries to show (default: 20)
-- Database path: Optional first argument (default: `/home/nick/poolcontrol.db`)
+- Database path: Optional first argument (default: `/var/lib/poolcontrol/poolcontrol.db`)
 
 **Output Format:**
 ```
