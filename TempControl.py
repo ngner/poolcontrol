@@ -48,15 +48,15 @@ poolPlug = None
 def initDatabase():
     """Initialize SQLite database with readings table if it doesn't exist"""
     conn = sqlite3.connect(database)
-    tsdb = conn.tsdb()
+    cursor = conn.cursor()
     
     # Check if table already exists
-    tsdb.execute("""
+    cursor.execute("""
         SELECT name FROM sqlite_master 
         WHERE type='table' AND name='readings'
     """)
     
-    if tsdb.fetchone() is None:
+    if cursor.fetchone() is None:
         # Table doesn't exist, create it
         create_table_sql = """
         CREATE TABLE readings (
@@ -67,8 +67,8 @@ def initDatabase():
             pumpState INTEGER NOT NULL CHECK(pumpState IN (-1, 0, 1))
         )
         """
-        tsdb.execute(create_table_sql)
-        tsdb.execute("CREATE INDEX idx_epoch ON readings(Epoch)")
+        cursor.execute(create_table_sql)
+        cursor.execute("CREATE INDEX idx_epoch ON readings(Epoch)")
         conn.commit()
         print("Database initialized at: {0}".format(database), flush=True)
     
@@ -116,8 +116,8 @@ def writeTemp():
     
     # Insert into database
     conn = sqlite3.connect(database)
-    tsdb = conn.tsdb()
-    tsdb.execute(
+    cursor = conn.cursor()
+    cursor.execute(
         "INSERT INTO readings (Epoch, roofTemp, poolTemp, pumpNeed, pumpState) VALUES (?, ?, ?, ?, ?)",
         (epoch, roofTemp, poolTemp, pumpNeed, pumpState)
     )
