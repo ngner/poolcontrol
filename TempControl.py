@@ -49,15 +49,15 @@ poolPlug = SmartPlug(poolPlugAddress)
 def initDatabase():
     """Initialize SQLite database with readings table if it doesn't exist"""
     conn = sqlite3.connect(database)
-    cursor = conn.cursor()
+    tsdb = conn.tsdb()
     
     # Check if table already exists
-    cursor.execute("""
+    tsdb.execute("""
         SELECT name FROM sqlite_master 
         WHERE type='table' AND name='readings'
     """)
     
-    if cursor.fetchone() is None:
+    if tsdb.fetchone() is None:
         # Table doesn't exist, create it
         create_table_sql = """
         CREATE TABLE readings (
@@ -68,8 +68,8 @@ def initDatabase():
             pumpState INTEGER NOT NULL CHECK(pumpState IN (-1, 0, 1))
         )
         """
-        cursor.execute(create_table_sql)
-        cursor.execute("CREATE INDEX idx_epoch ON readings(Epoch)")
+        tsdb.execute(create_table_sql)
+        tsdb.execute("CREATE INDEX idx_epoch ON readings(Epoch)")
         conn.commit()
         print("Database initialized at: {0}".format(database), flush=True)
     
@@ -79,7 +79,7 @@ def initDatabase():
 def checkTemp():
     for sensorname in sensors:
         address = sensors[sensorname]["address"]
-        tempfile = open("/sys/devices/w1_bus_master1/" + address + "/w1_slave")
+        tempfile = open("/sys/bus/w1/devices/" + address + "/temperature")  # Older versions of Pi /sys/devices/w1_bus_master1/" + address + "/w1_slave"
         tempdata = tempfile.read()
         tempfile.close()
         # convert string with data to the temp as a float
@@ -117,8 +117,8 @@ def writeTemp():
     
     # Insert into database
     conn = sqlite3.connect(database)
-    cursor = conn.cursor()
-    cursor.execute(
+    tsdb = conn.tsdb()
+    tsdb.execute(
         "INSERT INTO readings (Epoch, roofTemp, poolTemp, pumpNeed, pumpState) VALUES (?, ?, ?, ?, ?)",
         (epoch, roofTemp, poolTemp, pumpNeed, pumpState)
     )

@@ -7,7 +7,7 @@ equipment:
     
     # Temperature sensors configuration
     # Each sensor requires a unique address from the 1-Wire bus
-    sensors: 
+    sensors:
         roof: 
             address: 28-021313aad3aa
         pool:
@@ -16,7 +16,7 @@ equipment:
 logging:
     # SQLite database file path for storing timeseries readings
     # The database will contain: Epoch, roofTemp, poolTemp, pumpNeed, pumpState
-    database: /home/nick/poolcontrol.db
+    database: /var/lib/poolcontrol/poolcontrol.db
 
 control:
     # Target pool temperature in degrees Celsius
