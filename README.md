@@ -12,26 +12,54 @@ You will need a raspberry pi, a TPLink HS100/110, and two DS18B20 temperature se
    pip install pyHS100
    ```
 
-2. Clone this repo to `/usr/local/poolcontrol/` on your Pi.
-
-3. Copy `poolControl.yaml` to `/etc/poolControl.yaml`:
+2. Clone this repo to `/usr/local/poolcontrol/` on your Pi:
    ```bash
-   sudo cp poolControl.yaml /etc/poolControl.yaml
+   sudo mkdir -p /usr/local/poolcontrol
+   sudo git clone <repository-url> /usr/local/poolcontrol
+   # Or if you already have it elsewhere:
+   # sudo cp -r /path/to/poolcontrol/* /usr/local/poolcontrol/
    ```
 
-4. Edit `/etc/poolControl.yaml` and configure:
+3. Create a dedicated user for the service (optional but recommended):
+   ```bash
+   sudo useradd -r -s /bin/false poolcontrol
+   sudo chown -R poolcontrol:poolcontrol /usr/local/poolcontrol
+   ```
+   **Note:** If you prefer to run as a different user (e.g., `pi` or `nick`), edit `poolcontrol.service` and change the `User=` line accordingly.
+
+4. Copy `poolControl.yaml` to `/etc/poolControl.yaml`:
+   ```bash
+   sudo cp /usr/local/poolcontrol/poolControl.yaml /etc/poolControl.yaml
+   ```
+
+5. Edit `/etc/poolControl.yaml` and configure:
    - `equipment.poolPlugAddress`: IP address of your TP-Link smart plug
    - `equipment.sensors`: Addresses of your DS18B20 sensors
-   - `logging.database`: Path to SQLite database file (default: `/home/nick/poolcontrol.db`)
+   - `logging.database`: Path to SQLite database file (e.g., `/var/lib/poolcontrol/poolcontrol.db` or `/home/poolcontrol/poolcontrol.db`)
    - `control.targetPoolTemp`: Target pool temperature in Celsius
    - `control.requiredGain`: Minimum temperature difference (roof - pool) to run pump
 
-5. Copy the systemd service file:
+6. Create database directory and set permissions (if using a custom database path):
    ```bash
-   sudo cp poolcontrol.service /etc/systemd/system/poolcontrol.service
+   sudo mkdir -p /var/lib/poolcontrol
+   sudo chown poolcontrol:poolcontrol /var/lib/poolcontrol
+   # Or if using home directory:
+   # sudo mkdir -p /home/poolcontrol
+   # sudo chown poolcontrol:poolcontrol /home/poolcontrol
+   ```
+
+7. Copy the systemd service file:
+   ```bash
+   sudo cp /usr/local/poolcontrol/poolcontrol.service /etc/systemd/system/poolcontrol.service
    sudo systemctl daemon-reload
    sudo systemctl enable poolcontrol.service
    sudo systemctl start poolcontrol.service
+   ```
+
+8. Verify the service is running:
+   ```bash
+   sudo systemctl status poolcontrol.service
+   sudo journalctl -u poolcontrol.service -f
    ```
 
 ## Data Storage
