@@ -92,6 +92,7 @@ def checkTemp():
 
 
 def writeTemp():
+    global poolPlug
     """Write temperature readings to SQLite database"""
     epoch = int(time.time())
     
@@ -146,6 +147,7 @@ def checkSolarGain(roofTemp=0, poolTemp=0):
 
 def pumpControl():
     global pumpRun
+    global poolPlug
     if poolPlug is None:
         try:
             poolPlug = SmartPlug(poolPlugAddress)

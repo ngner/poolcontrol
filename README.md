@@ -5,6 +5,21 @@ Simple Python program to control solar pool pump via TP Link Smart WiFi plug usi
 
 You will need a raspberry pi, a TPLink HS100/110, and two DS18B20 temperature sensors - and a pump of course.
 
+## OS setup
+
+1. Set up w1-gpio firmware
+`sudo sh -c 'echo dtoverlay=w1-gpio >> /boot/firmware/config.txt'`
+
+2. reboot `shutdown -r now`
+
+3. `lsmod | grep w1` should give a gpio and therm module if missing therm see next step.
+
+4. check you get a device path from the kernel for the sensor readinngs.
+`ls /sys/bus/w1/devices/` 
+If you see files as 28-XXXX then all good if you see 00-XXX then bad (these are ghost devices when the sensor cannot be seen - check cables resistor etc)
+
+
+
 ## Setup
 
 1. Install required Python packages. (Varies with current Python setup)
