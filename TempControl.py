@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from pyHS100 import SmartPlug, Discover
-from ruamel.yaml import YAML
+import yaml
 
 import time
 import sys
@@ -11,10 +11,9 @@ import sqlite3
 
 
 ## Get configuration from file if possible
-yaml = YAML(typ='safe')
 try:
     with open("/etc/poolControl.yaml", "r") as yamlfile:
-        config = yaml.load(yamlfile)
+        config = yaml.safe_load(yamlfile)
 except:
     # If this fails use an emptyish config dict.
     config = { 'logging': {}, 'equipment': {}, 'control': {} }

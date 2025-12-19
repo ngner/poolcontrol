@@ -7,10 +7,20 @@ You will need a raspberry pi, a TPLink HS100/110, and two DS18B20 temperature se
 
 ## Setup
 
-1. Download and install the `pyHS100` python module:
+1. Install required Python packages. On Debian Bookworm (Raspberry Pi OS Bookworm), use one of these methods:
+
+   **Option A: Check if packages are available via apt (recommended first):**
    ```bash
-   pip install pyHS100
+   sudo apt update
+   sudo apt install python3-pyhs100 python3-yaml
    ```
+   
+   **Option B: If not available via apt, use Python's built-in pip module:**
+   ```bash
+   sudo python3 -m pip install pyHS100 pyyaml
+   ```
+   
+   **Note:** On modern Debian/Ubuntu systems, `python3 -m pip` is preferred over `pip` as it uses Python's built-in pip module and doesn't require pip to be installed separately.
 
 2. Clone this repo to `/usr/local/poolcontrol/` on your Pi:
    ```bash
