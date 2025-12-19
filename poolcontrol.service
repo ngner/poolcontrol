@@ -7,8 +7,12 @@ StartLimitIntervalSec=310
 Type=simple
 Restart=on-failure
 RestartSec=60
-User=root
-ExecStart=/usr/bin/python3 /home/nick/TempSensor.py
+User=poolcontrol
+Group=poolcontrol
+WorkingDirectory=/usr/local/poolcontrol
+ExecStart=/usr/bin/python3 /usr/local/poolcontrol/TempControl.py
+StandardOutput=journal
+StandardError=journal
 
 [Install]
 WantedBy=multi-user.target
